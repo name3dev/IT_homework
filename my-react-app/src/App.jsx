@@ -7,7 +7,7 @@ function RegisterForm() {
   const [msg, setMsg] = useState({ txt: '', isErr: false });
   const [loading, setLoading] = useState(false);
 
-  const passVal = watch('password');
+  const password = watch('password');
 
   const sendData = async (data) => {
     setLoading(true);
@@ -16,60 +16,62 @@ function RegisterForm() {
     try {
       const { confirmPassword, ...payload } = data;
       await axios.post('https://typicode.com', payload);
-      setMsg({ txt: 'Успешно зарегался!', isErr: false });
+      setMsg({ txt: 'Пользователь успешно зарегистрирован', isErr: false });
     } catch (e) {
-      setMsg({ txt: 'Какая-то лажа при регистрации...', isErr: true });
+      setMsg({ txt: 'Ошибка при регистрации', isErr: true });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: '15px', border: '1px solid #ccc', borderRadius: '5px' }}>
-      <h3>Форма реги</h3>
-      <form onSubmit={handleSubmit(sendData)} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+    <div>
+      <h3>Регистрация</h3>
+      <form onSubmit={handleSubmit(sendData)}>
         <div>
-          <input placeholder="Имя" {...register('name', { required: 'Забыл имя ввести' })} />
-          {errors.name && <div style={{ color: 'red', fontSize: '12px' }}>{errors.name.message}</div>}
+          <label>Имя:</label><br />
+          <input {...register('name', { required: 'Поле обязательно для заполнения' })} />
+          {errors.name && <div style={{ color: 'red' }}>{errors.name.message}</div>}
         </div>
 
         <div>
+          <label>Email:</label><br />
           <input 
-            placeholder="Email" 
+            type="email" 
             {...register('email', { 
-              required: 'Email обязателен',
-              pattern: { value: /^\S+@\S+$/i, message: 'Email кривой' }
+              required: 'Поле обязательно для заполнения',
+              pattern: { value: /^\S+@\S+$/i, message: 'Некорректный формат email' }
             })} 
           />
-          {errors.email && <div style={{ color: 'red', fontSize: '12px' }}>{errors.email.message}</div>}
+          {errors.email && <div style={{ color: 'red' }}>{errors.email.message}</div>}
         </div>
 
         <div>
+          <label>Пароль:</label><br />
           <input 
             type="password" 
-            placeholder="Пароль" 
             {...register('password', { 
-              required: 'Придумай пароль',
-              minLength: { value: 8, message: 'Надо хотя бы 8 знаков' }
+              required: 'Поле обязательно для заполнения',
+              minLength: { value: 8, message: 'Минимальная длина пароля — 8 символов' }
             })} 
           />
-          {errors.password && <div style={{ color: 'red', fontSize: '12px' }}>{errors.password.message}</div>}
+          {errors.password && <div style={{ color: 'red' }}>{errors.password.message}</div>}
         </div>
 
         <div>
+          <label>Подтверждение пароля:</label><br />
           <input 
             type="password" 
-            placeholder="Повтори пароль" 
             {...register('confirmPassword', { 
-              required: 'Повтори пароль обязательно',
-              validate: v => v === passVal || 'Пароли не совпали'
+              required: 'Поле обязательно для заполнения',
+              validate: v => v === password || 'Пароли не совпадают'
             })} 
           />
-          {errors.confirmPassword && <div style={{ color: 'red', fontSize: '12px' }}>{errors.confirmPassword.message}</div>}
+          {errors.confirmPassword && <div style={{ color: 'red' }}>{errors.confirmPassword.message}</div>}
         </div>
-
-        <button type="submit" disabled={loading} style={{ width: 'fit-content' }}>
-          {loading ? 'Отправляем...' : 'Ткни для реги'}
+        <br />
+        <button type="submit" disabled={loading}>
+          {loading ? 'Отправка...' : 'Зарегистрироваться'}
         </button>
       </form>
 
@@ -81,50 +83,53 @@ function RegisterForm() {
 function CreatePost() {
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
   const [users, setUsers] = useState([]);
-  const [info, setInfo] = useState('');
+  const [info, setInfo] = useState({ txt: '', isErr: false });
 
   useEffect(() => {
     axios.get('https://typicode.com')
       .then(res => setUsers(res.data))
-      .catch(err => console.log('Юзеры не прилетели:', err));
+      .catch(() => console.error('Ошибка загрузки пользователей'));
   }, []);
 
   const handlePost = async (data) => {
     try {
       await axios.post('https://typicode.com', data);
-      setInfo('Пост улетел на сервак!');
+      setInfo({ txt: 'Пост успешно создан', isErr: false });
       reset();
     } catch (e) {
-      setInfo('Пост не создался, косяк.');
+      setInfo({ txt: 'Ошибка при создании поста', isErr: true });
     }
   };
 
   return (
-    <div style={{ padding: '15px', border: '1px solid #ccc', borderRadius: '5px' }}>
-      <h3>Новый пост</h3>
-      <form onSubmit={handleSubmit(handlePost)} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+    <div>
+      <h3>Создание нового поста</h3>
+      <form onSubmit={handleSubmit(handlePost)}>
         <div>
-          <select {...register('userId', { required: 'Выбери автора, ну' })}>
-            <option value="">Кто автор?</option>
+          <label>Автор:</label><br />
+          <select {...register('userId', { required: 'Выберите автора из списка' })}>
+            <option value="">-- Выберите автора --</option>
             {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
           </select>
-          {errors.userId && <div style={{ color: 'red', fontSize: '12px' }}>{errors.userId.message}</div>}
+          {errors.userId && <div style={{ color: 'red' }}>{errors.userId.message}</div>}
         </div>
 
         <div>
-          <input placeholder="Заголовок" {...register('title', { required: 'Заголовок пустой' })} />
-          {errors.title && <div style={{ color: 'red', fontSize: '12px' }}>{errors.title.message}</div>}
+          <label>Заголовок:</label><br />
+          <input {...register('title', { required: 'Поле обязательно для заполнения' })} />
+          {errors.title && <div style={{ color: 'red' }}>{errors.title.message}</div>}
         </div>
 
         <div>
-          <textarea placeholder="Текст..." {...register('body', { required: 'А писать кто будет?' })} />
-          {errors.body && <div style={{ color: 'red', fontSize: '12px' }}>{errors.body.message}</div>}
+          <label>Текст поста:</label><br />
+          <textarea {...register('body', { required: 'Поле обязательно для заполнения' })} />
+          {errors.body && <div style={{ color: 'red' }}>{errors.body.message}</div>}
         </div>
-
-        <button type="submit" style={{ width: 'fit-content' }}>Создать пост</button>
+        <br />
+        <button type="submit">Создать</button>
       </form>
 
-      {info && <p style={{ color: 'blue' }}>{info}</p>}
+      {info.txt && <p style={{ color: info.isErr ? 'red' : 'green' }}>{info.txt}</p>}
     </div>
   );
 }
@@ -147,7 +152,7 @@ function EditProfile() {
         setLoading(false);
       })
       .catch(() => {
-        setStatus({ text: 'Не смогли стянуть данные профиля', err: true });
+        setStatus({ text: 'Ошибка при загрузке данных профиля', err: true });
         setLoading(false);
       });
   }, [reset]);
@@ -157,46 +162,52 @@ function EditProfile() {
     setStatus({ text: '', err: false });
     try {
       await axios.put('https://typicode.com/1', data);
-      setStatus({ text: 'Профиль обновили!', err: false });
+      setStatus({ text: 'Изменения успешно сохранены', err: false });
     } catch (e) {
-      setStatus({ text: 'Не сохранилось нифига', err: true });
+      setStatus({ text: 'Ошибка при сохранении изменений', err: true });
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div>Секунду, грузим инфу...</div>;
+  if (loading) return <div>Загрузка данных профиля...</div>;
 
   return (
-    <div style={{ padding: '15px', border: '1px solid #ccc', borderRadius: '5px' }}>
-      <h3>Редактировать профиль</h3>
-      <form onSubmit={handleSubmit(saveProfile)} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+    <div>
+      <h3>Редактирование профиля</h3>
+      <form onSubmit={handleSubmit(saveProfile)}>
         <div>
-          <label>Имя: </label>
-          <input {...register('name', { required: 'Поле пустое' })} />
-          {errors.name && <span style={{ color: 'red', marginLeft: '10px' }}>{errors.name.message}</span>}
+          <label>Имя:</label><br />
+          <input {...register('name', { required: 'Поле обязательно для заполнения' })} />
+          {errors.name && <div style={{ color: 'red' }}>{errors.name.message}</div>}
         </div>
 
         <div>
-          <label>Email: </label>
-          <input {...register('email', { required: 'Email нужен' })} />
-          {errors.email && <span style={{ color: 'red', marginLeft: '10px' }}>{errors.email.message}</span>}
+          <label>Email:</label><br />
+          <input 
+            type="email"
+            {...register('email', { 
+              required: 'Поле обязательно для заполнения',
+              pattern: { value: /^\S+@\S+$/i, message: 'Некорректный формат email' }
+            })} 
+          />
+          {errors.email && <div style={{ color: 'red' }}>{errors.email.message}</div>}
         </div>
 
         <div>
-          <label>Телефон: </label>
-          <input {...register('phone', { required: 'Без мобилы никак' })} />
-          {errors.phone && <span style={{ color: 'red', marginLeft: '10px' }}>{errors.phone.message}</span>}
+          <label>Телефон:</label><br />
+          <input {...register('phone', { required: 'Поле обязательно для заполнения' })} />
+          {errors.phone && <div style={{ color: 'red' }}>{errors.phone.message}</div>}
         </div>
 
         <div>
-          <label>Сайт: </label>
-          <input {...register('website', { required: 'Сайт укажи' })} />
-          {errors.website && <span style={{ color: 'red', marginLeft: '10px' }}>{errors.website.message}</span>}
+          <label>Веб-сайт:</label><br />
+          <input {...register('website', { required: 'Поле обязательно для заполнения' })} />
+          {errors.website && <div style={{ color: 'red' }}>{errors.website.message}</div>}
         </div>
-
-        <button type="submit" disabled={saving} style={{ width: 'fit-content' }}>
-          {saving ? 'Сохраняем...' : 'Сохранить изменения'}
+        <br />
+        <button type="submit" disabled={saving}>
+          {saving ? 'Сохранение...' : 'Сохранить'}
         </button>
       </form>
 
@@ -209,13 +220,13 @@ export default function App() {
   const [tab, setTab] = useState('reg');
 
   return (
-    <div style={{ maxWidth: '600px', margin: '30px auto', fontFamily: 'sans-serif' }}>
-      <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
-        <button onClick={() => setTab('reg')} style={{ fontWeight: tab === 'reg' ? 'bold' : 'normal' }}>ДЗ 1: Рега</button>
-        <button onClick={() => setTab('post')} style={{ fontWeight: tab === 'post' ? 'bold' : 'normal' }}>ДЗ 2: Пост</button>
-        <button onClick={() => setTab('profile')} style={{ fontWeight: tab === 'profile' ? 'bold' : 'normal' }}>ДЗ 3: Профиль</button>
+    <div>
+      <div>
+        <button onClick={() => setTab('reg')}>Домашнее задание 1</button>
+        <button onClick={() => setTab('post')}>Домашнее задание 2</button>
+        <button onClick={() => setTab('profile')}>Домашнее задание 3</button>
       </div>
-
+      <hr />
       <div>
         {tab === 'reg' && <RegisterForm />}
         {tab === 'post' && <CreatePost />}
