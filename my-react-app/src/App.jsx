@@ -1,383 +1,226 @@
-import React, { useState } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import axios from 'axios';
 
-function App() {
-  const [name, setName] = useState('');
-  const [emailReg, setEmailReg] = useState('');
-  const [passwordReg, setPasswordReg] = useState('');
-  const [errorsReg, setErrorsReg] = useState({});
+function RegisterForm() {
+  const { register, handleSubmit, watch, formState: { errors } } = useForm();
+  const [msg, setMsg] = useState({ txt: '', isErr: false });
+  const [loading, setLoading] = useState(false);
 
-  const validate = () => {
-    const newErrors = {};
+  const passVal = watch('password');
 
-    if (!name || name.trim() === '') {
-      newErrors.name = 'Name is required';
-    } else if (name.trim().length < 2) {
-      newErrors.name = 'Name must be at least 2 characters';
+  const sendData = async (data) => {
+    setLoading(true);
+    setMsg({ txt: '', isErr: false });
+    
+    try {
+      const { confirmPassword, ...payload } = data;
+      await axios.post('https://typicode.com', payload);
+      setMsg({ txt: 'Успешно зарегался!', isErr: false });
+    } catch (e) {
+      setMsg({ txt: 'Какая-то лажа при регистрации...', isErr: true });
+    } finally {
+      setLoading(false);
     }
-
-    if (!emailReg || emailReg.trim() === '') {
-      newErrors.email = 'Email is required';
-    } else if (!emailReg.includes('@') || !emailReg.includes('.')) {
-      newErrors.email = 'Invalid email format';
-    }
-
-    if (!passwordReg || passwordReg.trim() === '') {
-      newErrors.password = 'Password is required';
-    } else if (passwordReg.length <= 6) {
-      newErrors.password = 'Password must be more than 6 characters';
-    }
-
-    setErrorsReg(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleRegisterSubmit = (e) => {
-    e.preventDefault();
-
-    if (validate()) {
-      console.log('Submitting:', {
-        name,
-        email: emailReg,
-        password: passwordReg
-      });
-
-      alert('Form submitted successfully!');
-
-      setName('');
-      setEmailReg('');
-      setPasswordReg('');
-      setErrorsReg({});
-    }
-  };
-
-  const {
-    register: loginRegister,
-    handleSubmit: handleLoginSubmit,
-    formState: { errors: loginErrors },
-    reset: resetLogin
-  } = useForm();
-
-  const onLoginSubmit = (data) => {
-    console.log('Данные входа:', data);
-    resetLogin();
-  };
-
-  const [tasks, setTasks] = useState([]);
-
-  const {
-    register: todoRegister,
-    handleSubmit: handleTodoSubmit,
-    reset: resetTodo,
-    formState: { errors: todoErrors }
-  } = useForm();
-
-  const onTodoSubmit = (data) => {
-    if (!data.task.trim()) return;
-
-    setTasks([...tasks, data.task]);
-    resetTodo();
-
-    console.log('Текущие задачи:', [...tasks, data.task]);
-  };
-
-  const {
-    register: profileRegister,
-    handleSubmit: handleProfileSubmit,
-    formState: { errors: profileErrors }
-  } = useForm({
-    defaultValues: {
-      name: 'Иван Иванов',
-      age: 25,
-      city: 'Ташкент'
-    }
-  });
-
-  const onProfileSubmit = (data) => {
-    console.log('Объект пользователя:', data);
-    alert('Данные профиля: ' + JSON.stringify(data));
-  };
-
-  const {
-    register: phoneRegister,
-    handleSubmit: handlePhoneSubmit,
-    control,
-    formState: { errors: phoneErrors }
-  } = useForm({
-    defaultValues: {
-      phones: [{ number: '' }]
-    }
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'phones'
-  });
-
-  const onPhoneSubmit = (data) => {
-    console.log('Массив телефонов:', data.phones);
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-
-      <h2>Регистрация</h2>
-
-      <form onSubmit={handleRegisterSubmit}>
-        <div style={{ marginBottom: '15px' }}>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value || '')}
-            placeholder="Name"
-            style={{
-              width: '100%',
-              padding: '10px',
-              borderColor: errorsReg.name ? 'red' : 'gray',
-              borderRadius: '4px'
-            }}
-          />
-
-          {errorsReg.name && (
-            <div style={{ color: 'red', marginTop: '5px' }}>
-              {errorsReg.name}
-            </div>
-          )}
-        </div>
-
-        <div style={{ marginBottom: '15px' }}>
-          <input
-            type="text"
-            value={emailReg}
-            onChange={(e) => setEmailReg(e.target.value || '')}
-            placeholder="Email"
-            style={{
-              width: '100%',
-              padding: '10px',
-              borderColor: errorsReg.email ? 'red' : 'gray',
-              borderRadius: '4px'
-            }}
-          />
-
-          {errorsReg.email && (
-            <div style={{ color: 'red', marginTop: '5px' }}>
-              {errorsReg.email}
-            </div>
-          )}
-        </div>
-
-        <div style={{ marginBottom: '15px' }}>
-          <input
-            type="password"
-            value={passwordReg}
-            onChange={(e) => setPasswordReg(e.target.value || '')}
-            placeholder="Password"
-            style={{
-              width: '100%',
-              padding: '10px',
-              borderColor: errorsReg.password ? 'red' : 'gray',
-              borderRadius: '4px'
-            }}
-          />
-
-          {errorsReg.password && (
-            <div style={{ color: 'red', marginTop: '5px' }}>
-              {errorsReg.password}
-            </div>
-          )}
-        </div>
-
-        <button type="submit">Register</button>
-      </form>
-
-      <hr />
-
-      <h3>Форма авторизации</h3>
-
-      <form onSubmit={handleLoginSubmit(onLoginSubmit)}>
+    <div style={{ padding: '15px', border: '1px solid #ccc', borderRadius: '5px' }}>
+      <h3>Форма реги</h3>
+      <form onSubmit={handleSubmit(sendData)} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <div>
-          <label>Email: </label>
-
-          <input
-            type="email"
-            {...loginRegister('email', {
-              required: 'Email обязателен'
-            })}
-          />
-
-          {loginErrors.email && (
-            <span style={{ color: 'red' }}>
-              {loginErrors.email.message}
-            </span>
-          )}
+          <input placeholder="Имя" {...register('name', { required: 'Забыл имя ввести' })} />
+          {errors.name && <div style={{ color: 'red', fontSize: '12px' }}>{errors.name.message}</div>}
         </div>
 
         <div>
-          <label>Пароль: </label>
-
-          <input
-            type="password"
-            {...loginRegister('password', {
-              required: 'Пароль обязателен'
-            })}
+          <input 
+            placeholder="Email" 
+            {...register('email', { 
+              required: 'Email обязателен',
+              pattern: { value: /^\S+@\S+$/i, message: 'Email кривой' }
+            })} 
           />
-
-          {loginErrors.password && (
-            <span style={{ color: 'red' }}>
-              {loginErrors.password.message}
-            </span>
-          )}
-        </div>
-
-        <button type="submit">Войти</button>
-      </form>
-
-      <hr />
-
-      <h3>TODO форма</h3>
-
-      <form onSubmit={handleTodoSubmit(onTodoSubmit)}>
-        <input
-          {...todoRegister('task', {
-            required: 'Задача не может быть пустой',
-            validate: (value) =>
-              value.trim() !== '' ||
-              'Задача не может быть пустой строкой'
-          })}
-        />
-
-        {todoErrors.task && (
-          <span style={{ color: 'red' }}>
-            {todoErrors.task.message}
-          </span>
-        )}
-
-        <button type="submit">Добавить задачу</button>
-      </form>
-
-      {tasks.length > 0 && (
-        <div style={{ marginTop: '15px' }}>
-          <h4>Список задач:</h4>
-
-          <ul>
-            {tasks.map((task, index) => (
-              <li key={index}>{task}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <hr />
-
-      <h3>Форма профиля</h3>
-
-      <form onSubmit={handleProfileSubmit(onProfileSubmit)}>
-        <div>
-          <label>Имя: </label>
-
-          <input
-            {...profileRegister('name', {
-              required: 'Имя обязательно'
-            })}
-          />
-
-          {profileErrors.name && (
-            <span style={{ color: 'red' }}>
-              {profileErrors.name.message}
-            </span>
-          )}
+          {errors.email && <div style={{ color: 'red', fontSize: '12px' }}>{errors.email.message}</div>}
         </div>
 
         <div>
-          <label>Возраст: </label>
-
-          <input
-            type="number"
-            {...profileRegister('age', {
-              required: 'Возраст обязателен',
-              pattern: {
-                value: /^[0-9]+$/,
-                message: 'Возраст должен быть числом'
-              }
-            })}
+          <input 
+            type="password" 
+            placeholder="Пароль" 
+            {...register('password', { 
+              required: 'Придумай пароль',
+              minLength: { value: 8, message: 'Надо хотя бы 8 знаков' }
+            })} 
           />
-
-          {profileErrors.age && (
-            <span style={{ color: 'red' }}>
-              {profileErrors.age.message}
-            </span>
-          )}
+          {errors.password && <div style={{ color: 'red', fontSize: '12px' }}>{errors.password.message}</div>}
         </div>
 
         <div>
-          <label>Город: </label>
-
-          <input
-            {...profileRegister('city', {
-              required: 'Город обязателен'
-            })}
+          <input 
+            type="password" 
+            placeholder="Повтори пароль" 
+            {...register('confirmPassword', { 
+              required: 'Повтори пароль обязательно',
+              validate: v => v === passVal || 'Пароли не совпали'
+            })} 
           />
-
-          {profileErrors.city && (
-            <span style={{ color: 'red' }}>
-              {profileErrors.city.message}
-            </span>
-          )}
+          {errors.confirmPassword && <div style={{ color: 'red', fontSize: '12px' }}>{errors.confirmPassword.message}</div>}
         </div>
 
-        <button type="submit">Сохранить профиль</button>
-      </form>
-
-      <hr />
-
-      <h3>Динамические поля (телефоны)</h3>
-
-      <form onSubmit={handlePhoneSubmit(onPhoneSubmit)}>
-        {fields.map((field, index) => (
-          <div key={field.id} style={{ marginBottom: '10px' }}>
-            <label>Телефон {index + 1}: </label>
-
-            <input
-              {...phoneRegister(`phones.${index}.number`, {
-                required: 'Номер телефона обязателен'
-              })}
-            />
-
-            {phoneErrors.phones?.[index] && (
-              <span style={{ color: 'red' }}>
-                {phoneErrors.phones[index].number.message}
-              </span>
-            )}
-
-            {index > 0 && (
-              <button
-                type="button"
-                onClick={() => remove(index)}
-                style={{ marginLeft: '10px' }}
-              >
-                Удалить
-              </button>
-            )}
-          </div>
-        ))}
-
-        <button
-          type="button"
-          onClick={() => append({ number: '' })}
-        >
-          Добавить телефон
-        </button>
-
-        <button
-          type="submit"
-          style={{ marginLeft: '10px' }}
-        >
-          Сохранить телефоны
+        <button type="submit" disabled={loading} style={{ width: 'fit-content' }}>
+          {loading ? 'Отправляем...' : 'Ткни для реги'}
         </button>
       </form>
 
+      {msg.txt && <p style={{ color: msg.isErr ? 'red' : 'green' }}>{msg.txt}</p>}
     </div>
   );
 }
 
-export default App;
+function CreatePost() {
+  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const [users, setUsers] = useState([]);
+  const [info, setInfo] = useState('');
+
+  useEffect(() => {
+    axios.get('https://typicode.com')
+      .then(res => setUsers(res.data))
+      .catch(err => console.log('Юзеры не прилетели:', err));
+  }, []);
+
+  const handlePost = async (data) => {
+    try {
+      await axios.post('https://typicode.com', data);
+      setInfo('Пост улетел на сервак!');
+      reset();
+    } catch (e) {
+      setInfo('Пост не создался, косяк.');
+    }
+  };
+
+  return (
+    <div style={{ padding: '15px', border: '1px solid #ccc', borderRadius: '5px' }}>
+      <h3>Новый пост</h3>
+      <form onSubmit={handleSubmit(handlePost)} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div>
+          <select {...register('userId', { required: 'Выбери автора, ну' })}>
+            <option value="">Кто автор?</option>
+            {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+          </select>
+          {errors.userId && <div style={{ color: 'red', fontSize: '12px' }}>{errors.userId.message}</div>}
+        </div>
+
+        <div>
+          <input placeholder="Заголовок" {...register('title', { required: 'Заголовок пустой' })} />
+          {errors.title && <div style={{ color: 'red', fontSize: '12px' }}>{errors.title.message}</div>}
+        </div>
+
+        <div>
+          <textarea placeholder="Текст..." {...register('body', { required: 'А писать кто будет?' })} />
+          {errors.body && <div style={{ color: 'red', fontSize: '12px' }}>{errors.body.message}</div>}
+        </div>
+
+        <button type="submit" style={{ width: 'fit-content' }}>Создать пост</button>
+      </form>
+
+      {info && <p style={{ color: 'blue' }}>{info}</p>}
+    </div>
+  );
+}
+
+function EditProfile() {
+  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState({ text: '', err: false });
+
+  useEffect(() => {
+    axios.get('https://typicode.com/1')
+      .then(res => {
+        reset({
+          name: res.data.name,
+          email: res.data.email,
+          phone: res.data.phone,
+          website: res.data.website
+        });
+        setLoading(false);
+      })
+      .catch(() => {
+        setStatus({ text: 'Не смогли стянуть данные профиля', err: true });
+        setLoading(false);
+      });
+  }, [reset]);
+
+  const saveProfile = async (data) => {
+    setSaving(true);
+    setStatus({ text: '', err: false });
+    try {
+      await axios.put('https://typicode.com/1', data);
+      setStatus({ text: 'Профиль обновили!', err: false });
+    } catch (e) {
+      setStatus({ text: 'Не сохранилось нифига', err: true });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <div>Секунду, грузим инфу...</div>;
+
+  return (
+    <div style={{ padding: '15px', border: '1px solid #ccc', borderRadius: '5px' }}>
+      <h3>Редактировать профиль</h3>
+      <form onSubmit={handleSubmit(saveProfile)} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div>
+          <label>Имя: </label>
+          <input {...register('name', { required: 'Поле пустое' })} />
+          {errors.name && <span style={{ color: 'red', marginLeft: '10px' }}>{errors.name.message}</span>}
+        </div>
+
+        <div>
+          <label>Email: </label>
+          <input {...register('email', { required: 'Email нужен' })} />
+          {errors.email && <span style={{ color: 'red', marginLeft: '10px' }}>{errors.email.message}</span>}
+        </div>
+
+        <div>
+          <label>Телефон: </label>
+          <input {...register('phone', { required: 'Без мобилы никак' })} />
+          {errors.phone && <span style={{ color: 'red', marginLeft: '10px' }}>{errors.phone.message}</span>}
+        </div>
+
+        <div>
+          <label>Сайт: </label>
+          <input {...register('website', { required: 'Сайт укажи' })} />
+          {errors.website && <span style={{ color: 'red', marginLeft: '10px' }}>{errors.website.message}</span>}
+        </div>
+
+        <button type="submit" disabled={saving} style={{ width: 'fit-content' }}>
+          {saving ? 'Сохраняем...' : 'Сохранить изменения'}
+        </button>
+      </form>
+
+      {status.text && <p style={{ color: status.err ? 'red' : 'green' }}>{status.text}</p>}
+    </div>
+  );
+}
+
+export default function App() {
+  const [tab, setTab] = useState('reg');
+
+  return (
+    <div style={{ maxWidth: '600px', margin: '30px auto', fontFamily: 'sans-serif' }}>
+      <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
+        <button onClick={() => setTab('reg')} style={{ fontWeight: tab === 'reg' ? 'bold' : 'normal' }}>ДЗ 1: Рега</button>
+        <button onClick={() => setTab('post')} style={{ fontWeight: tab === 'post' ? 'bold' : 'normal' }}>ДЗ 2: Пост</button>
+        <button onClick={() => setTab('profile')} style={{ fontWeight: tab === 'profile' ? 'bold' : 'normal' }}>ДЗ 3: Профиль</button>
+      </div>
+
+      <div>
+        {tab === 'reg' && <RegisterForm />}
+        {tab === 'post' && <CreatePost />}
+        {tab === 'profile' && <EditProfile />}
+      </div>
+    </div>
+  );
+}
