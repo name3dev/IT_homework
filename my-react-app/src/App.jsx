@@ -15,7 +15,7 @@ function RegisterForm() {
     
     try {
       const { confirmPassword, ...payload } = data;
-      await axios.post('https://typicode.com', payload);
+      await axios.post('https://jsonplaceholder.typicode.com/users', payload);
       setMsg({ txt: 'Пользователь успешно зарегистрирован', isErr: false });
     } catch (e) {
       setMsg({ txt: 'Ошибка при регистрации', isErr: true });
@@ -86,14 +86,14 @@ function CreatePost() {
   const [info, setInfo] = useState({ txt: '', isErr: false });
 
   useEffect(() => {
-    axios.get('https://typicode.com')
+    axios.get('https://jsonplaceholder.typicode.com/users')
       .then(res => setUsers(res.data))
       .catch(() => console.error('Ошибка загрузки пользователей'));
   }, []);
 
   const handlePost = async (data) => {
     try {
-      await axios.post('https://typicode.com', data);
+      await axios.post('https://jsonplaceholder.typicode.com/posts', data);
       setInfo({ txt: 'Пост успешно создан', isErr: false });
       reset();
     } catch (e) {
@@ -141,7 +141,7 @@ function EditProfile() {
   const [status, setStatus] = useState({ text: '', err: false });
 
   useEffect(() => {
-    axios.get('https://typicode.com/1')
+    axios.get('https://jsonplaceholder.typicode.com/users/1')
       .then(res => {
         reset({
           name: res.data.name,
@@ -161,7 +161,7 @@ function EditProfile() {
     setSaving(true);
     setStatus({ text: '', err: false });
     try {
-      await axios.put('https://typicode.com/1', data);
+      await axios.put('https://jsonplaceholder.typicode.com/users/1', data);
       setStatus({ text: 'Изменения успешно сохранены', err: false });
     } catch (e) {
       setStatus({ text: 'Ошибка при сохранении изменений', err: true });
