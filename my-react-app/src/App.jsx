@@ -7,7 +7,7 @@ function RegisterForm() {
   const [msg, setMsg] = useState({ txt: '', isErr: false });
   const [loading, setLoading] = useState(false);
 
-  const password = watch('password');
+  const password = watch('password'); 
 
   const sendData = async (data) => {
     setLoading(true);
